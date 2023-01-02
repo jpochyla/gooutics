@@ -1,3 +1,4 @@
+use anyhow::Context;
 use anyhow::Result;
 use chrono::DateTime;
 use chrono::Utc;
@@ -13,15 +14,36 @@ fn client() -> Client {
     Client::new()
 }
 
+fn parse_venue_id(html: &str) -> Option<&str> {
+    html.split("app-argument=goout://venue/")
+        .nth(1)?
+        .split("\"")
+        .nth(0)
+}
+
+pub async fn get_venue_id(language: &str, short_id: &str) -> Result<String> {
+    let html = client()
+        .get(format!("https://goout.net/{language}/venue/{short_id}"))
+        .send()
+        .await?
+        .text()
+        .await?;
+    let id = parse_venue_id(&html).with_context(|| "Failed to parse venue ID")?;
+    Ok(id.to_owned())
+}
+
 pub async fn get_schedules(language: &str, venue_ids: &str) -> Result<GetSchedules> {
-    let req = client()
+    let res = client()
         .get("https://goout.net/services/entities/v1/schedules")
         .query(&[
             ("venueIds[]", venue_ids),
             ("languages[]", language),
             ("include", "events,venues"),
-        ]);
-    let res = req.send().await?.json().await?;
+        ])
+        .send()
+        .await?
+        .json()
+        .await?;
     Ok(res)
 }
 

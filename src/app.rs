@@ -12,15 +12,16 @@ use crate::{goout, ical};
 
 pub fn create_router() -> Router {
     Router::new()
-        .route("/:language/:name/:id/events", get(get_events))
+        .route("/:language/:name/:short_id/events", get(get_events))
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
 }
 
 async fn get_events(
-    Path((language, _name, id)): Path<(String, String, String)>,
+    Path((language, _name, short_id)): Path<(String, String, String)>,
 ) -> Result<impl IntoResponse, AppError> {
-    let schedules = goout::get_schedules(&language, &id).await?;
+    let venue_id = goout::get_venue_id(&language, &short_id).await?;
+    let schedules = goout::get_schedules(&language, &venue_id).await?;
     let calendar = ical::event_calendar(&language, &schedules)?;
     Ok((
         [(header::CONTENT_TYPE, "text/calendar")],
