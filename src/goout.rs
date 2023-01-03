@@ -17,8 +17,8 @@ fn client() -> Client {
 fn parse_venue_id(html: &str) -> Option<&str> {
     html.split("app-argument=goout://venue/")
         .nth(1)?
-        .split("\"")
-        .nth(0)
+        .split('"')
+        .next()
 }
 
 pub async fn get_venue_id(language: &str, short_id: &str) -> Result<String> {
@@ -169,8 +169,8 @@ pub struct EventAttrs {
     pub tags_manual: Vec<String>,
     pub film_meta: FilmMeta,
     pub exhibition_meta: ExhibitionMeta,
-    pub minor_performers: Vec<Value>,
-    pub recommendation: Value,
+    pub minor_performers: Vec<String>,
+    pub recommendation: Option<String>,
     pub schedules_range: Value,
     pub has_time_slots: bool,
 }
@@ -244,7 +244,7 @@ pub struct VenueAttrs {
     pub updated_at: String,
     pub email: String,
     pub phone: String,
-    pub url_facebook: String,
+    pub url_facebook: Option<String>,
     pub source_url: String,
 }
 
