@@ -14,17 +14,34 @@ pub fn event_calendar(language: &str, schedules: &GetSchedules) -> Result<Calend
             continue;
         };
 
-        let locale = event.locales.get(language);
-        let summary = locale.map(|l| l.name.as_str()).unwrap_or_default();
-        let description = locale.map(|l| l.description.as_str()).unwrap_or_default();
+        let loc = event.locales.get(language);
+        let summary = loc.map(|l| l.name.as_str()).unwrap_or_default();
+        let description = loc.map(|l| l.description.as_str()).unwrap_or_default();
+
+        let url = schedule
+            .locales
+            .get(language)
+            .map(|l| l.site_url.as_str())
+            .unwrap_or_default();
+
+        // Prepend name to the address.
+        let address = venue
+            .locales
+            .get(language)
+            .map(|l| {
+                let name = &l.name;
+                let address = &venue.attributes.address;
+                format!("{name}\n{address}")
+            })
+            .unwrap_or_else(|| venue.attributes.address.clone());
 
         let cal_event = Event::new()
+            .url(url)
             .summary(summary)
             .description(description)
             .starts(schedule.attributes.start_at)
             .ends(schedule.attributes.end_at)
-            .url(&schedule.url)
-            .location(&venue.attributes.address)
+            .location(&address)
             .class(Class::Public)
             .done();
 
