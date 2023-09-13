@@ -14,6 +14,15 @@ fn client() -> Client {
     Client::new()
 }
 
+fn load_json<'de, T>(json: &'de str) -> Result<T>
+where
+    T: Deserialize<'de>,
+{
+    let mut jd = serde_json::Deserializer::from_str(json);
+    let val = serde_path_to_error::deserialize(&mut jd)?;
+    Ok(val)
+}
+
 fn parse_venue_id(html: &str) -> Option<&str> {
     html.split("app-argument=goout://venue/")
         .nth(1)?
@@ -28,12 +37,15 @@ pub async fn get_venue_id(language: &str, short_id: &str) -> Result<String> {
         .await?
         .text()
         .await?;
-    let id = parse_venue_id(&html).with_context(|| "Failed to parse venue ID")?;
+    tracing::debug!(?html);
+
+    let id = parse_venue_id(&html)
+        .with_context(|| format!("Failed to parse venue ID for {short_id:?}"))?;
     Ok(id.to_owned())
 }
 
 pub async fn get_schedules(language: &str, venue_ids: &str) -> Result<GetSchedules> {
-    let res = client()
+    let json = client()
         .get("https://goout.net/services/entities/v1/schedules")
         .query(&[
             ("venueIds[]", venue_ids),
@@ -42,9 +54,13 @@ pub async fn get_schedules(language: &str, venue_ids: &str) -> Result<GetSchedul
         ])
         .send()
         .await?
-        .json()
+        .text()
         .await?;
-    Ok(res)
+    tracing::debug!(?json);
+
+    let json =
+        load_json(&json).with_context(|| format!("Failed to parse schedules for {venue_ids:?}"))?;
+    Ok(json)
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -117,7 +133,7 @@ pub struct ScheduleAttrs {
     pub parsed_at: Option<String>, // Date
     pub source_urls: Vec<String>,
     pub ticketing_state: String,
-    pub pricing: String,
+    pub pricing: Option<String>,
     pub updated_at: String,
     pub currency: String,
 }
@@ -138,7 +154,7 @@ pub struct ScheduleRels {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ScheduleLocale {
-    pub stage: String,
+    pub stage: Option<String>,
     pub site_url: String,
 }
 
@@ -202,8 +218,8 @@ pub struct EventLocale {
     pub name: String,
     pub note: String,
     pub description: String,
-    pub meta_description: String,
-    pub meta_title: String,
+    pub meta_description: Option<String>,
+    pub meta_title: Option<String>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]

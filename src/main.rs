@@ -13,6 +13,8 @@ mod server;
 
 pub fn main() -> Result<()> {
     let flags = xflags::parse_or_exit! {
+        /// Print debug logs
+        optional -d,--debug
         /// Lookup venue events and exit instead of starting a server
         optional -v,--venue venue_id: String
         /// Override language for the venue lookup
@@ -21,7 +23,11 @@ pub fn main() -> Result<()> {
 
     // Configure tracing.
     let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::INFO)
+        .with_max_level(if flags.debug {
+            Level::DEBUG
+        } else {
+            Level::INFO
+        })
         .finish();
     subscriber::set_global_default(subscriber)?;
 
@@ -40,7 +46,7 @@ pub fn main() -> Result<()> {
 
 async fn lookup_venue(language: &str, short_id: &str) {
     let cal = get_events(language, short_id).await.unwrap();
-    println!("{}", cal);
+    println!("{cal}");
 }
 
 async fn start_server() {
