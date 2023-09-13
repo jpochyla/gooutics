@@ -52,7 +52,7 @@ async fn lookup_venue(language: &str, short_id: &str) -> Result<()> {
 
 async fn start_server() -> Result<()> {
     let ms = server::create_router().into_make_service();
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     Server::bind(&addr).serve(ms).await?;
     Ok(())
 }
