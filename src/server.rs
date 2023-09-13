@@ -13,9 +13,14 @@ use crate::{goout, ical};
 
 pub fn create_router() -> Router {
     Router::new()
+        .route("/", get(index))
         .route("/:language/:name/:short_id/events", get(handle_get_events))
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
+}
+
+async fn index() -> Result<impl IntoResponse, AppError> {
+    Ok("ok")
 }
 
 async fn handle_get_events(
