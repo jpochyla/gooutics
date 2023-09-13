@@ -261,7 +261,7 @@ pub struct VenueAttrs {
     pub email: String,
     pub phone: String,
     pub url_facebook: Option<String>,
-    pub source_url: String,
+    pub source_url: Option<String>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
