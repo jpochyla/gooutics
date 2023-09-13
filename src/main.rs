@@ -37,23 +37,22 @@ pub fn main() -> Result<()> {
     // Either start the server or performa a command.
     if let Some(venue_id) = flags.venue {
         let language = flags.language.as_deref().unwrap_or("en");
-        runtime.block_on(lookup_venue(language, &venue_id));
+        runtime.block_on(lookup_venue(language, &venue_id))?;
     } else {
-        runtime.block_on(start_server());
+        runtime.block_on(start_server())?;
     }
     Ok(())
 }
 
-async fn lookup_venue(language: &str, short_id: &str) {
-    let cal = get_events(language, short_id).await.unwrap();
+async fn lookup_venue(language: &str, short_id: &str) -> Result<()> {
+    let cal = get_events(language, short_id).await?;
     println!("{cal}");
+    Ok(())
 }
 
-async fn start_server() {
-    let app = server::create_router();
+async fn start_server() -> Result<()> {
+    let ms = server::create_router().into_make_service();
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    Server::bind(&addr).serve(ms).await?;
+    Ok(())
 }
