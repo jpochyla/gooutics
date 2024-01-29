@@ -7,10 +7,20 @@ pub fn event_calendar(language: &str, schedules: &GetSchedules) -> Result<Calend
     let mut cal = Calendar::new();
 
     for schedule in &schedules.schedules {
-        let Some(venue) = schedule.relationships.venue.as_ref().and_then(|r| schedules.find_venue(r.id)) else {
+        let Some(venue) = schedule
+            .relationships
+            .venue
+            .as_ref()
+            .and_then(|r| schedules.find_venue(r.id))
+        else {
             continue;
         };
-        let Some(event) = schedule.relationships.event.as_ref().and_then(|r| schedules.find_event(r.id)) else {
+        let Some(event) = schedule
+            .relationships
+            .event
+            .as_ref()
+            .and_then(|r| schedules.find_event(r.id))
+        else {
             continue;
         };
 

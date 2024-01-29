@@ -24,7 +24,7 @@ where
 }
 
 fn parse_venue_id(html: &str) -> Option<&str> {
-    html.split("app-argument=goout://venue/")
+    html.split(r#"https:\u002F\u002Fgoout.net\u002Fvenue\u002F"#)
         .nth(1)?
         .split('"')
         .next()

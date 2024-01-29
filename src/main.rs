@@ -1,8 +1,8 @@
 use std::net::SocketAddr;
 
 use anyhow::Result;
-use axum::Server;
 use server::get_events;
+use tokio::net::TcpListener;
 use tokio::runtime::Builder;
 use tracing::{subscriber, Level};
 use tracing_subscriber::FmtSubscriber;
@@ -34,7 +34,7 @@ pub fn main() -> Result<()> {
     // Start tokio runtime.
     let runtime = Builder::new_multi_thread().enable_all().build()?;
 
-    // Either start the server or performa a command.
+    // Either start the server or perform a command.
     if let Some(venue_id) = flags.venue {
         let language = flags.language.as_deref().unwrap_or("en");
         runtime.block_on(lookup_venue(language, &venue_id))?;
@@ -51,8 +51,9 @@ async fn lookup_venue(language: &str, short_id: &str) -> Result<()> {
 }
 
 async fn start_server() -> Result<()> {
-    let ms = server::create_router().into_make_service();
+    let app = server::create_router();
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
-    Server::bind(&addr).serve(ms).await?;
+    let listener = TcpListener::bind(addr).await?;
+    axum::serve(listener, app).await?;
     Ok(())
 }

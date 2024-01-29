@@ -50,10 +50,10 @@ impl IntoResponse for AppError {
 
 impl<E> From<E> for AppError
 where
-    E: Into<Error>,
+    Error: From<E>,
 {
     fn from(err: E) -> Self {
-        Self(err.into())
+        Self(Error::from(err))
     }
 }
 
