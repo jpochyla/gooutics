@@ -6,6 +6,15 @@ use crate::goout::GetSchedules;
 pub fn event_calendar(language: &str, schedules: &GetSchedules) -> Result<Calendar> {
     let mut cal = Calendar::new();
 
+    if let Some(venue) = schedules
+        .included
+        .venues
+        .first()
+        .and_then(|v| v.locales.get(language).map(|l| l.name.as_str()))
+    {
+        cal.name(venue);
+    }
+
     for schedule in &schedules.schedules {
         let Some(venue) = schedule
             .relationships
