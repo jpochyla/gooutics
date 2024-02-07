@@ -34,11 +34,11 @@ pub fn event_calendar(language: &str, schedules: &GetSchedules) -> Result<Calend
         };
 
         let loc = event.locales.get(language);
-        let summary = loc
-            .map(|l| l.name.as_str())
-            .map(transform_description)
+        let summary = loc.map(|l| l.name.as_str()).unwrap_or_default();
+        let description = loc
+            .map(|l| l.description.as_str())
+            .map(markdown::to_html)
             .unwrap_or_default();
-        let description = loc.map(|l| l.description.as_str()).unwrap_or_default();
 
         let url = schedule
             .locales
@@ -59,8 +59,8 @@ pub fn event_calendar(language: &str, schedules: &GetSchedules) -> Result<Calend
 
         let cal_event = Event::new()
             .url(url)
-            .summary(&summary)
-            .description(description)
+            .summary(summary)
+            .description(&description)
             .starts(schedule.attributes.start_at)
             .ends(schedule.attributes.end_at)
             .location(&address)
@@ -71,8 +71,4 @@ pub fn event_calendar(language: &str, schedules: &GetSchedules) -> Result<Calend
     }
 
     Ok(cal)
-}
-
-fn transform_description(desc: &str) -> String {
-    markdown::to_html(desc)
 }
