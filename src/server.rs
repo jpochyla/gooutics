@@ -14,6 +14,7 @@ use crate::{goout, ical};
 pub fn create_router() -> Router {
     Router::new()
         .route("/", get(handle_index))
+        .route("/:language/:name/:short_id/events/", get(handle_get_events))
         .route("/:language/:name/:short_id/events", get(handle_get_events))
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
