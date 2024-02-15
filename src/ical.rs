@@ -16,6 +16,10 @@ pub fn event_calendar(language: &str, schedules: &GetSchedules) -> Result<Calend
     }
 
     for schedule in &schedules.schedules {
+        if schedule.is_postponed_indefinitely() {
+            continue;
+        }
+
         let Some(venue) = schedule
             .relationships
             .venue

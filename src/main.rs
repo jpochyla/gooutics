@@ -1,7 +1,6 @@
 use std::net::SocketAddr;
 
 use anyhow::Result;
-use server::get_events;
 use tokio::net::TcpListener;
 use tokio::runtime::Builder;
 use tracing::{subscriber, Level};
@@ -45,8 +44,13 @@ pub fn main() -> Result<()> {
 }
 
 async fn lookup_venue(language: &str, short_id: &str) -> Result<()> {
-    let cal = get_events(language, short_id).await?;
-    println!("{cal}");
+    let venue_id = goout::get_venue_id(language, short_id).await?;
+    eprintln!("language={language}");
+    eprintln!("short_id={short_id}");
+    eprintln!("venue_id={venue_id}");
+    let schedules = goout::get_schedules(language, &venue_id).await?;
+    let calendar = ical::event_calendar(language, &schedules)?;
+    println!("{calendar}");
     Ok(())
 }
 

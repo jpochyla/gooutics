@@ -116,6 +116,15 @@ pub struct Schedule {
     pub url: String,
 }
 
+impl Schedule {
+    pub fn is_postponed_indefinitely(&self) -> bool {
+        self.attributes
+            .tags
+            .iter()
+            .any(|tag| tag == "postponed_indefinitely")
+    }
+}
+
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ScheduleAttrs {
@@ -131,6 +140,7 @@ pub struct ScheduleAttrs {
     pub external_tickets_url: Option<String>,
     pub external_stream_url: Option<String>,
     pub parsed_at: Option<String>, // Date
+    pub tags: Vec<String>,
     pub source_urls: Vec<String>,
     pub ticketing_state: String,
     pub pricing: Option<String>,
